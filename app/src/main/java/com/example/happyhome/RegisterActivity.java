@@ -13,7 +13,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +30,7 @@ public class RegisterActivity extends AppCompatActivity {
     TextInputEditText mTextInputEditTextConfirmPassword;
     Button mButtonRegister;
     FirebaseAuth mAut;
+    FirebaseFirestore mFirestore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +45,7 @@ public class RegisterActivity extends AppCompatActivity {
         mButtonRegister=findViewById(R.id.ButtonRegister);
 
         mAut=FirebaseAuth.getInstance();
+        mFirestore=FirebaseFirestore.getInstance();
 
         mButtonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,34 +68,51 @@ public class RegisterActivity extends AppCompatActivity {
         String password=mTextInputEditTextPasswordR.getText().toString();
         String confirmpassword=mTextInputEditTextConfirmPassword.getText().toString();
 
+
         if (!username.isEmpty() && !email.isEmpty() && !password.isEmpty() && !confirmpassword.isEmpty()){
             if (isEmailValid(email)){
 
-                if (password.equals(confirmpassword)){
-                    if (password.length()>=6){
-                        CreateUser(email,password);
+                if(password.equals(confirmpassword)){
+                    if(password.length() >=6){
+                        createUser(username,email,password);
                     }else {
-                        Toast.makeText(this, "Las contraseñas deben tener 6 caracteres", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Las contraseñas debe tener 6 caracteres", Toast.LENGTH_SHORT).show();
                     }
-                }else {
-                    Toast.makeText(this,"Las contraseñas no coinciden", Toast.LENGTH_LONG).show();
+
+                }else{
+                    Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show();
                 }
 
             }else {
-                Toast.makeText(this,"insertó todos los campos, el correo no es valido", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "inserto todos los campos pero el correo no es valido", Toast.LENGTH_SHORT).show();
             }
 
         }else {
-            Toast.makeText(this,"Para continuar inserta todos los campos", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "para continuar inserta todos los campos", Toast.LENGTH_SHORT).show();
         }
 
     }
-
-    private void CreateUser(String email, String password) {
-        mAut.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+//maperar los datos de los usuarios en la base de datos//
+    private void createUser(final String username, final String email, final String password) {
+            mAut.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()){
+                    String id=mAut.getCurrentUser().getUid();
+                    Map<String,Object> map=new HashMap<>();
+                    map.put("email",email);
+                    map.put("username",username);
+                    map.put("password",password);
+                    mFirestore.collection("Users").document(id).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()){
+                                Toast.makeText(RegisterActivity.this,"El usuario se almaceno correctamente", Toast.LENGTH_LONG).show();
+                            }else {
+                                Toast.makeText(RegisterActivity.this,"No se pudo almacenar en la base de datos", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
                     Toast.makeText(RegisterActivity.this,"El usuario se registro correctamente", Toast.LENGTH_LONG).show();
                 }else {
                     Toast.makeText(RegisterActivity.this,"No se pudo registrar el usuario", Toast.LENGTH_LONG).show();
