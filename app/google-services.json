@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "2686312309",
+    "project_id": "happyhome-g102",
+    "storage_bucket": "happyhome-g102.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:2686312309:android:888094605d7852899b3d3c",
+        "android_client_info": {
+          "package_name": "com.example.happyhome"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "2686312309-ckmhogr1mpao0306agkivkgc865hccvc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.happyhome",
+            "certificate_hash": "6a1da5271cfe22180bb11a270e9c1cfbe8de74d0"
+          }
+        },
+        {
+          "client_id": "2686312309-ds3gbbg3hvk7i1em9j9m5oh4qha9j9t8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJJG5igo9AtjIzcHwrnX69LReaNWHKK9c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "2686312309-ds3gbbg3hvk7i1em9j9m5oh4qha9j9t8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
