@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkUserExist(final String id) {
-        mFirestore.collection("User").document(id).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        mFirestore.collection("Users").document(id).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists()){
@@ -142,8 +142,8 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 }else {
                     String email=mAut.getCurrentUser().getEmail();
-                    Map<String, String> map = new HashMap<>();
-                    map.put("email",email);
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("email", email);
                     mFirestore.collection("Users").document(id).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {

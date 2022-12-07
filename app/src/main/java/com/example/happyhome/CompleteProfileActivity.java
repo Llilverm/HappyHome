@@ -29,8 +29,8 @@ public class CompleteProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_complete_profile);
 
-        mTextInputUsername.findViewById(R.id.textInputEditTextUsernameC);
-        mButtonRegisterC.findViewById(R.id.ButtonRegisterC);
+        mTextInputUsername=findViewById(R.id.textInputEditTextUsernameC);
+        mButtonRegisterC=findViewById(R.id.ButtonRegisterC);
 
         mAut=FirebaseAuth.getInstance();
         mFirestore=FirebaseFirestore.getInstance();
@@ -41,7 +41,6 @@ public class CompleteProfileActivity extends AppCompatActivity {
                 register();
             }
         });
-
 
     }
 
@@ -59,7 +58,7 @@ public class CompleteProfileActivity extends AppCompatActivity {
         String id=mAut.getCurrentUser().getUid();
         Map<String, Object>map=new HashMap<>();
         map.put("username",username);
-        mFirestore.collection("User").document().update(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+        mFirestore.collection("Users").document().update(map).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()){
