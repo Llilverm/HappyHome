@@ -1,8 +1,9 @@
-package com.example.happyhome;
+package com.example.happyhome.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.accounts.Account;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +12,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.happyhome.R;
+import com.example.happyhome.models.User;
+import com.example.happyhome.providers.AutProviders;
+import com.example.happyhome.providers.UsersProvider;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -37,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
     TextInputEditText mTextInputEditTextEmail;
     TextInputEditText mTextInputEditTextPassword;
     Button mButtonInicioLogin;
+    AutProviders mAutProviders;
     SignInButton mButtonGoogle;
-    FirebaseAuth mAut;
     private GoogleSignInClient mGoogleSignInClient;
     private final int REQUEST_CODE_GOOGLE=1;
-    FirebaseFirestore mFirestore;
+    UsersProvider mUsersProvider;
 
 
     @Override
@@ -55,9 +60,10 @@ public class MainActivity extends AppCompatActivity {
         mButtonInicioLogin=findViewById(R.id.ButtonInicioLogin);
         mButtonGoogle=findViewById(R.id.ButtonloginSignInGoogle);
 
-        mAut=FirebaseAuth.getInstance();
-        mFirestore=FirebaseFirestore.getInstance();
+        mAutProviders= new AutProviders();
+        mUsersProvider = new UsersProvider();
 
+        /*escuchador boton google*/
         mButtonGoogle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
 
-                firebaseAuthWithGoogle(account.getIdToken());
+                firebaseAuthWithGoogle(account);
             } catch (ApiException e) {
                 /* Falló el inicio de sesión de Google, actualice la interfaz de usuario apropiadamente*/
                 Log.w("ERROR", "Google sign in failed", e);
@@ -112,39 +118,39 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAut.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+    private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
+        mAutProviders.googleLogin(account).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-
-                            String id=mAut.getCurrentUser().getUid();
-                            checkUserExist(id);
                             /* Inicio de sesión correcto, actualice la interfaz de usuario con la información del usuario que inició sesión*/
-
-                        } else {
+                            String id=mAutProviders.getUid();
+                            checkUserExist(id);
+                        }
+                        else {
                             /*Si falla el inicio de sesión, muestra un mensaje al usuario.*/
                             Log.w("ERROR", "signInWithCredential:failure", task.getException());
-
                         }
                     }
                 });
     }
 
     private void checkUserExist(final String id) {
-        mFirestore.collection("Users").document(id).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        mUsersProvider.getUser(id).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists()){
                     Intent intent=new Intent(MainActivity.this, HomeActivity.class);
                     startActivity(intent);
-                }else {
-                    String email=mAut.getCurrentUser().getEmail();
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("email", email);
-                    mFirestore.collection("Users").document(id).set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                }
+                else {
+                    String email=mAutProviders.getEmail();
+                    User user=new User();
+                    user.setEmail(email);
+                    user.setId(id);
+                    //Map<String, Object> map = new HashMap<>();
+                    //map.put("email", email);
+                    mUsersProvider.create(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()){
@@ -164,8 +170,7 @@ public class MainActivity extends AppCompatActivity {
     private void login() {
         String email=mTextInputEditTextEmail.getText().toString();
         String password=mTextInputEditTextPassword.getText().toString();
-
-        mAut.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+        mAutProviders.login(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if ((task.isSuccessful())){

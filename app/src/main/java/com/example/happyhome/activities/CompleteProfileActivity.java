@@ -1,4 +1,4 @@
-package com.example.happyhome;
+package com.example.happyhome.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +9,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.happyhome.R;
+import com.example.happyhome.models.User;
+import com.example.happyhome.providers.AutProviders;
+import com.example.happyhome.providers.UsersProvider;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
@@ -21,8 +25,11 @@ import java.util.Map;
 public class CompleteProfileActivity extends AppCompatActivity {
     TextInputEditText mTextInputUsername;
     Button mButtonRegisterC;
-    FirebaseAuth mAut;
-    FirebaseFirestore mFirestore;
+    //FirebaseAuth mAut; /*Se modifica el metodo de autenticación*/
+    //FirebaseFirestore mFirestore; /*Se modifica el metodo de autenticación*/
+    AutProviders mAutProviders;
+    UsersProvider mUsersProvider;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,8 +39,8 @@ public class CompleteProfileActivity extends AppCompatActivity {
         mTextInputUsername=findViewById(R.id.textInputEditTextUsernameC);
         mButtonRegisterC=findViewById(R.id.ButtonRegisterC);
 
-        mAut=FirebaseAuth.getInstance();
-        mFirestore=FirebaseFirestore.getInstance();
+        mAutProviders= new AutProviders();
+        mUsersProvider = new UsersProvider();
         
         mButtonRegisterC.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,10 +62,13 @@ public class CompleteProfileActivity extends AppCompatActivity {
     }
 
     private void updateUser(String username) {
-        String id=mAut.getCurrentUser().getUid();
-        Map<String, Object>map=new HashMap<>();
-        map.put("username",username);
-        mFirestore.collection("Users").document().update(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+        String id=mAutProviders.getUid();
+        User user=new User();
+        user.setUsername(username);
+        user.setId(id);
+        //Map<String, Object>map=new HashMap<>();
+        //map.put("username",username);
+        mUsersProvider.update(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()){
