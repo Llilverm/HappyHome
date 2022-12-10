@@ -3,7 +3,7 @@ package com.example.happyhome.activities;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.accounts.Account;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,15 +26,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashMap;
-import java.util.Map;
+import dmax.dialog.SpotsDialog;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private final int REQUEST_CODE_GOOGLE=1;
     UsersProvider mUsersProvider;
+    AlertDialog mDialog;
 
 
     @Override
@@ -62,6 +58,11 @@ public class MainActivity extends AppCompatActivity {
 
         mAutProviders= new AutProviders();
         mUsersProvider = new UsersProvider();
+
+        mDialog=new SpotsDialog.Builder()
+                .setContext(this)
+                .setMessage("Espere un momento....")
+                .setCancelable(false).build();
 
         /*escuchador boton google*/
         mButtonGoogle.setOnClickListener(new View.OnClickListener() {
@@ -119,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
+        mDialog.show(); /*Muestra el dialogo alerta*/
         mAutProviders.googleLogin(account).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -128,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
                             checkUserExist(id);
                         }
                         else {
+                            mDialog.dismiss(); /*Oculta el dialogo alerta cuando ejecuta la tarea*/
                             /*Si falla el inicio de sesión, muestra un mensaje al usuario.*/
                             Log.w("ERROR", "signInWithCredential:failure", task.getException());
                         }
@@ -139,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
         mUsersProvider.getUser(id).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
+                mDialog.dismiss();
                 if (documentSnapshot.exists()){
                     Intent intent=new Intent(MainActivity.this, HomeActivity.class);
                     startActivity(intent);
@@ -153,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
                     mUsersProvider.create(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
+                            mDialog.dismiss();
                             if (task.isSuccessful()){
                                 Intent intent=new Intent(MainActivity.this,CompleteProfileActivity.class);
                                 startActivity(intent);
@@ -170,9 +175,11 @@ public class MainActivity extends AppCompatActivity {
     private void login() {
         String email=mTextInputEditTextEmail.getText().toString();
         String password=mTextInputEditTextPassword.getText().toString();
+        mDialog.show(); /*Muestra el dialogo alerta*/
         mAutProviders.login(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
+                mDialog.dismiss(); /*Oculta el dialogo alerta cuando ejecuta la tarea*/
                 if ((task.isSuccessful())){
                     Intent intent=new Intent(MainActivity.this, HomeActivity.class);
                     startActivity(intent);

@@ -3,6 +3,7 @@ package com.example.happyhome.activities;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -22,6 +23,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+import dmax.dialog.SpotsDialog;
+
 public class CompleteProfileActivity extends AppCompatActivity {
     TextInputEditText mTextInputUsername;
     Button mButtonRegisterC;
@@ -29,6 +32,7 @@ public class CompleteProfileActivity extends AppCompatActivity {
     //FirebaseFirestore mFirestore; /*Se modifica el metodo de autenticación*/
     AutProviders mAutProviders;
     UsersProvider mUsersProvider;
+    AlertDialog mDialog;
 
 
     @Override
@@ -41,6 +45,11 @@ public class CompleteProfileActivity extends AppCompatActivity {
 
         mAutProviders= new AutProviders();
         mUsersProvider = new UsersProvider();
+
+        mDialog=new SpotsDialog.Builder()
+                .setContext(this)
+                .setMessage("Espere un momento....")
+                .setCancelable(false).build();
         
         mButtonRegisterC.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,11 +75,13 @@ public class CompleteProfileActivity extends AppCompatActivity {
         User user=new User();
         user.setUsername(username);
         user.setId(id);
+        mDialog.show();
         //Map<String, Object>map=new HashMap<>();
         //map.put("username",username);
         mUsersProvider.update(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                mDialog.dismiss();
                 if (task.isSuccessful()){
                     Intent intent=new Intent(CompleteProfileActivity.this,HomeActivity.class);
                     startActivity(intent);
